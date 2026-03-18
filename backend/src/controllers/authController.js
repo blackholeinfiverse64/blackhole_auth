@@ -93,4 +93,25 @@ const logout = (req, res) => {
   return res.status(200).json({ message: "Logged out from all apps" });
 };
 
-module.exports = { register, login, me, logout };
+const ssoSession = async (req, res, next) => {
+  try {
+    const app = String(req.query.app || "").trim().toLowerCase();
+    if (!app) return res.status(400).json({ message: "Query param 'app' is required" });
+
+    const scopedUser = await User.findOne(
+      withTenantFilter(req, { _id: req.user.user_id })
+    ).select("-password");
+    if (!scopedUser) return res.status(404).json({ message: "User not found" });
+
+    if (!scopedUser.allowedApps?.includes(app)) {
+      return res.status(403).json({ message: `Access denied for app '${app}'` });
+    }
+
+    const payload = await buildJwtPayload(scopedUser);
+    return res.status(200).json({ authenticated: true, app, user: payload });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports = { register, login, me, logout, ssoSession };

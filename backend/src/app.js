@@ -13,10 +13,22 @@ app.use(helmet());
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
+const originAllowed = (origin) => {
+  if (!origin || corsOrigins.length === 0) return true;
+  return corsOrigins.some((allowed) => {
+    if (allowed === origin) return true;
+    if (allowed.includes("*")) {
+      const regexPattern = `^${allowed.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*")}$`;
+      return new RegExp(regexPattern).test(origin);
+    }
+    return false;
+  });
+};
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || corsOrigins.length === 0 || corsOrigins.includes(origin)) {
+      if (originAllowed(origin)) {
         return callback(null, true);
       }
       return callback(new Error("Origin not allowed by CORS"), false);

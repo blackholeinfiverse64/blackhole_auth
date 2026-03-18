@@ -68,6 +68,7 @@ Backend default base URL: `http://localhost:8080`
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/me`
+- `GET /api/auth/sso/session?app=<appSlug>`
 - `POST /api/auth/logout`
 
 ### JWT Payload
@@ -147,6 +148,8 @@ Every external app repo should:
 If user is already logged in on BHIV Core, then opening a product URL directly should not ask for password again.
 This works when the product app protects routes with the shared middleware and validates the same SSO cookie.
 
+For app frontend login pages, you can also call `GET /api/auth/sso/session?app=<appSlug>` with `withCredentials: true` and skip local login form when `authenticated=true`.
+
 ### Quick middleware example
 
 ```js
@@ -178,6 +181,7 @@ Ready template file:
 
 - `backend/src/integrations/examples/setuExpressIntegration.example.js`
 - `backend/src/integrations/examples/multiAppExpressIntegration.example.js`
+- `backend/src/integrations/examples/productFrontendAutoLogin.example.js`
 
 ### App slug mapping (copy to each product repo)
 
@@ -317,5 +321,6 @@ Use helper:
 - Add audit logs for login, logout, role/app assignment changes.
 - Introduce API gateway and centralized policy service as app count grows.
 - Add Redis token deny-list for immediate revocation scenarios.
-#   b l a c k h o l e _ a u t h  
+#   b l a c k h o l e _ a u t h 
+ 
  
