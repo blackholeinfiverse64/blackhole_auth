@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
@@ -21,14 +20,6 @@ const App = () => (
       element={
         <PublicRoute>
           <LoginPage />
-        </PublicRoute>
-      }
-    />
-    <Route
-      path="/signup"
-      element={
-        <PublicRoute>
-          <SignupPage />
         </PublicRoute>
       }
     />

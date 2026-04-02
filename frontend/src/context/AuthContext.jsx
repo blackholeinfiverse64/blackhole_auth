@@ -1,56 +1,35 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import client from "../api/client";
 
+const AUTH_SERVER = import.meta.env.VITE_AUTH_SERVER_URL || "https://bhiv-auth.onrender.com";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchMe = async () => {
-    const { data } = await client.get("/api/auth/me");
-    setUser(data.user);
-    return data.user;
-  };
-
-  const login = async (payload) => {
-    setIsLoading(true);
+  const fetchMe = useCallback(async () => {
     try {
-      const { data } = await client.post("/api/auth/login", payload);
+      const { data } = await client.get("/api/me");
       setUser(data.user);
       return data.user;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const signup = async (payload) => {
-    setIsLoading(true);
-    try {
-      const { data } = await client.post("/api/auth/register", payload);
-      setUser(data.user);
-      return data.user;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      await client.post("/api/auth/logout");
+    } catch {
       setUser(null);
-    } finally {
-      setIsLoading(false);
+      return null;
     }
-  };
+  }, []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    const redirect = encodeURIComponent(window.location.origin);
+    window.location.href = `${AUTH_SERVER}/logout?redirect=${redirect}`;
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const { data } = await client.get("/api/auth/me");
+        const { data } = await client.get("/api/me");
         if (mounted) setUser(data.user);
       } catch {
         if (mounted) setUser(null);
@@ -63,9 +42,20 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const onMessage = (e) => {
+      if (e.origin !== AUTH_SERVER) return;
+      if (e.data?.type === "blackhole-auth-success") {
+        fetchMe();
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [fetchMe]);
+
   const value = useMemo(
-    () => ({ user, isBootstrapping, isLoading, fetchMe, login, signup, logout }),
-    [user, isBootstrapping, isLoading]
+    () => ({ user, isBootstrapping, fetchMe, logout, authServerUrl: AUTH_SERVER }),
+    [user, isBootstrapping, fetchMe, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

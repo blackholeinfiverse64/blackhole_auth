@@ -7,12 +7,7 @@ const WelcomePage = () => (
       <p>Identity and product launcher for all Blackhole Infiverse applications.</p>
       <div className="header-actions">
         <Link to="/login">
-          <button type="button">Login</button>
-        </Link>
-        <Link to="/signup">
-          <button type="button" className="secondary-btn">
-            Signup
-          </button>
+          <button type="button">Continue with Blackhole</button>
         </Link>
       </div>
     </section>

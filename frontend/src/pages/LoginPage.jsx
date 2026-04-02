@@ -1,55 +1,66 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useCallback, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
-  const [form, setForm] = useState({ email: "", password: "", tenantName: "" });
-  const [error, setError] = useState("");
+  const { authServerUrl } = useAuth();
+  const [email, setEmail] = useState("");
+  const [showOverlay, setShowOverlay] = useState(false);
+  const iframeRef = useRef(null);
 
-  const onChange = (event) => {
-    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
-  };
+  const openBlackholeAuth = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (!email) return;
+      const src =
+        authServerUrl +
+        "/login?mode=popup&email=" +
+        encodeURIComponent(email) +
+        "&redirect=" +
+        encodeURIComponent(window.location.origin);
+      if (iframeRef.current) iframeRef.current.src = src;
+      setShowOverlay(true);
+    },
+    [email, authServerUrl]
+  );
 
-  const onSubmit = async (event) => {
-    event.preventDefault();
-    setError("");
-    try {
-      await login(form);
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-    }
-  };
+  const closeOverlay = useCallback(() => {
+    setShowOverlay(false);
+    if (iframeRef.current) iframeRef.current.src = "";
+  }, []);
 
   return (
     <main className="auth-shell">
       <section className="auth-card">
         <h1>BHIV Core</h1>
-        <p>Sign in to launch your products with single sign-on.</p>
-        <form onSubmit={onSubmit}>
-          <label>
-            Tenant Name
-            <input name="tenantName" value={form.tenantName} onChange={onChange} required />
-          </label>
+        <p>Sign in with your Blackhole account to access your products.</p>
+
+        <form onSubmit={openBlackholeAuth}>
           <label>
             Email
-            <input type="email" name="email" value={form.email} onChange={onChange} required />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+            />
           </label>
-          <label>
-            Password
-            <input type="password" name="password" value={form.password} onChange={onChange} required />
-          </label>
-          {error ? <p className="error-text">{error}</p> : null}
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Login"}
+          <button type="submit" className="bh-login-btn">
+            Continue with Blackhole
           </button>
         </form>
-        <p>
-          New to BHIV Core? <Link to="/signup">Create account</Link>
-        </p>
       </section>
+
+      {showOverlay && (
+        <div className="bh-overlay" onClick={closeOverlay}>
+          <div className="bh-popup" onClick={(e) => e.stopPropagation()}>
+            <iframe ref={iframeRef} title="Blackhole Auth" className="bh-iframe" />
+            <button className="bh-close" onClick={closeOverlay} type="button">
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

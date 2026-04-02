@@ -3,8 +3,8 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-const authRoutes = require("./routes/authRoutes");
-const { corsOrigins } = require("./config/env");
+const { corsOrigins, jwtSecret, authServerUrl } = require("./config/env");
+const { requireAuth, optionalAuth } = require("./middleware/blackholeAuth");
 const { errorHandler, notFound } = require("./middleware/errorHandler");
 
 const app = express();
@@ -45,8 +45,17 @@ app.use(
   })
 );
 
+app.use(optionalAuth({ jwtSecret }));
+
 app.get("/api/health", (req, res) => res.status(200).json({ status: "ok" }));
-app.use("/api/auth", authRoutes);
+
+app.get(
+  "/api/me",
+  requireAuth({ jwtSecret, authServerUrl }),
+  (req, res) => {
+    res.json({ user: req.user });
+  }
+);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -160,3 +160,65 @@ button:disabled {
   margin-top: 1rem;
   color: var(--muted);
 }
+
+.bh-login-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  background: linear-gradient(135deg, #18b6a6, #2ec7b9);
+  border: none;
+  border-radius: 8px;
+  color: #03141c;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.bh-login-btn:hover {
+  opacity: 0.9;
+}
+
+.bh-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bh-popup {
+  position: relative;
+}
+
+.bh-iframe {
+  width: 440px;
+  height: 520px;
+  border: none;
+  border-radius: 16px;
+}
+
+.bh-close {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.bh-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
